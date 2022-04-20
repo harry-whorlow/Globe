@@ -52,7 +52,7 @@ cometOneBase.rotation.x = Math.PI / 0.55;
 /* comet */
 
 const cometOne = new THREE.Mesh(
-    new THREE.SphereGeometry(10, 10, 5),
+    new THREE.SphereGeometry(10, 32, 16),
     new THREE.MeshStandardMaterial({
         wireframe: true,
     })
