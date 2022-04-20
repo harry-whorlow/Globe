@@ -1,18 +1,11 @@
 import "./style.css";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-
-var pointer, raycaster;
+import { Flow } from "three/examples/jsm/modifiers/CurveModifier.js";
 
 const renderer = new THREE.WebGLRenderer({ alpha: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
-
-pointer = new THREE.Vector2();
-raycaster = new THREE.Raycaster();
-
-const scene = new THREE.Scene();
-
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(window.innerWidth, window.innerHeight);
 
@@ -22,17 +15,16 @@ const camera = new THREE.PerspectiveCamera(
     1,
     10000
 );
-
 const controls = new OrbitControls(camera, renderer.domElement);
-
 camera.position.set(0, 0, 1000);
 controls.update();
 
+const scene = new THREE.Scene();
 renderer.render(scene, camera);
 
 /* world */
 
-const worldTexture = new THREE.TextureLoader().load("world-map.jpg");
+const worldTexture = new THREE.TextureLoader().load("./assets/world-map.jpg");
 const world = new THREE.Mesh(
     new THREE.SphereGeometry(100, 64, 32),
     new THREE.MeshStandardMaterial({
@@ -42,33 +34,6 @@ const world = new THREE.Mesh(
 );
 scene.add(world);
 
-/* ellipse const */
-const ellipseMaterial = new THREE.LineBasicMaterial({ color: 0x000000 });
-
-/* ellipse one*/
-
-const curveOne = new THREE.EllipseCurve(
-    50,
-    0, // ax, aY
-    300,
-    150, // xRadius, yRadius
-    0,
-    2 * Math.PI, // aStartAngle, aEndAngle
-    false, // aClockwise
-    0 // aRotation
-);
-
-/* comet */
-
-const pointsOne = curveOne.getPoints(50);
-const geometryOne = new THREE.BufferGeometry().setFromPoints(pointsOne);
-
-// Create the final object to add to the scene
-const ellipseOne = new THREE.Line(geometryOne, ellipseMaterial);
-ellipseOne.rotation.x = Math.PI * 0.6;
-ellipseOne.rotation.y = Math.PI * 0.1;
-
-// scene.add(ellipseOne);
 /* ellipse two */
 
 const curveTwo = new THREE.EllipseCurve(
@@ -78,54 +43,31 @@ const curveTwo = new THREE.EllipseCurve(
     200, // xRadius, yRadius
     0,
     2 * Math.PI, // aStartAngle, aEndAngle
-    false, // aClockwise
-    0 // aRotation
+    false // aClockwise
+    // aRotation
 );
+curveTwo.closed = true;
 
-const pointsTwo = curveTwo.getPoints(50);
-const geometryTwo = new THREE.BufferGeometry().setFromPoints(pointsTwo);
+// points array
 
-// Create the final object to add to the scene
-const ellipseTwo = new THREE.Line(geometryTwo, ellipseMaterial);
-ellipseTwo.rotation.x = Math.PI * 0.48;
-ellipseTwo.rotation.y = Math.PI * 0.05;
-
-scene.add(ellipseTwo);
-// console.log( ellipseTwo.geometry.setFromPoints(curve.getPoints(500));
-
-/* comet */
+const points = curveTwo.getPoints(100);
+const line = new THREE.LineLoop(
+    new THREE.BufferGeometry().setFromPoints(points),
+    new THREE.LineBasicMaterial({ color: 0x000000 })
+);
+scene.add(line);
 
 const cometTwo = new THREE.Mesh(
     new THREE.SphereGeometry(10, 10, 5),
     new THREE.MeshStandardMaterial({
+        color: 0x000000,
         wireframe: true,
     })
 );
-cometTwo.position.x = 200;
-scene.add(cometTwo);
 
-/* ellipse three*/
-
-const curveThree = new THREE.EllipseCurve(
-    50,
-    0, // ax, aY
-    300,
-    150, // xRadius, yRadius
-    0,
-    2 * Math.PI, // aStartAngle, aEndAngle
-    false, // aClockwise
-    0 // aRotation
-);
-
-const pointsThree = curveThree.getPoints(50);
-const geometryThree = new THREE.BufferGeometry().setFromPoints(pointsThree);
-
-// Create the final object to add to the scene
-const ellipseThree = new THREE.Line(geometryThree, ellipseMaterial);
-ellipseThree.rotation.x = Math.PI * 0.6;
-ellipseThree.rotation.y = Math.PI * 0.15;
-
-scene.add(ellipseThree);
+const flow = new Flow(cometTwo);
+flow.updateCurve(0, curveTwo);
+scene.add(flow.object3D);
 
 /* lighting */
 
@@ -141,6 +83,8 @@ function animate() {
     requestAnimationFrame(animate);
 
     world.rotation.y += -0.001;
+
+    flow.moveAlongCurve(0.0006);
 
     renderer.render(scene, camera);
 }
