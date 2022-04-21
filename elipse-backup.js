@@ -32,7 +32,7 @@ renderer.render(scene, camera);
 
 /* world */
 
-const worldTexture = new THREE.TextureLoader().load("world-map.jpg");
+const worldTexture = new THREE.TextureLoader().load("./assets/world-map.jpg");
 const world = new THREE.Mesh(
     new THREE.SphereGeometry(100, 64, 32),
     new THREE.MeshStandardMaterial({
@@ -93,7 +93,6 @@ ellipseTwo.rotation.x = Math.PI * 0.48;
 ellipseTwo.rotation.y = Math.PI * 0.05;
 
 scene.add(ellipseTwo);
-// console.log( ellipseTwo.geometry.setFromPoints(curve.getPoints(500));
 
 /* comet */
 
@@ -104,8 +103,6 @@ const cometTwo = new THREE.Mesh(
     })
 );
 cometTwo.position.x = 200;
-cometTwo.rotation.x = Math.PI * 0.6;
-cometTwo.rotation.y = Math.PI * 0.15;
 scene.add(cometTwo);
 
 /* ellipse three*/
@@ -128,6 +125,10 @@ const geometryThree = new THREE.BufferGeometry().setFromPoints(pointsThree);
 const ellipseThree = new THREE.Line(geometryThree, ellipseMaterial);
 ellipseThree.rotation.x = Math.PI * 0.6;
 ellipseThree.rotation.y = Math.PI * 0.15;
+
+// dose not work with lines...
+
+// console.log(ellipseThree.getPoints(100));
 
 scene.add(ellipseThree);
 

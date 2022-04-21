@@ -11,6 +11,9 @@ document.body.appendChild(renderer.domElement);
 pointer = new THREE.Vector2();
 raycaster = new THREE.Raycaster();
 
+pointer.x = 1;
+pointer.y = 1;
+
 const scene = new THREE.Scene();
 
 renderer.setPixelRatio(window.devicePixelRatio);
@@ -46,20 +49,24 @@ scene.add(world);
 
 /* base */
 const cometOneBase = new THREE.Object3D();
-
 cometOneBase.rotation.x = Math.PI / 0.55;
+
+const cometTwoBase = new THREE.Object3D();
+cometTwoBase.rotation.x = Math.PI / 0.55;
 
 /* comet */
 
 const cometOne = new THREE.Mesh(
-    new THREE.SphereGeometry(10, 32, 16),
+    new THREE.SphereGeometry(10, 24, 12),
     new THREE.MeshStandardMaterial({
+        color: 0xffffff,
         wireframe: true,
     })
 );
 cometOne.position.x = 200;
 cometOneBase.add(cometOne);
-
+cometOne.hoverValue = false;
+console.log(cometOne);
 /* comet Ring */
 
 const cometOneRing = new THREE.Mesh(
@@ -74,6 +81,32 @@ cometOneBase.add(cometOneRing);
 
 scene.add(cometOneBase);
 
+/* comet two */
+
+const cometTwo = new THREE.Mesh(
+    new THREE.SphereGeometry(10, 24, 12),
+    new THREE.MeshStandardMaterial({
+        color: 0x000000,
+        wireframe: true,
+    })
+);
+cometTwo.position.x = 200;
+cometTwoBase.add(cometTwo);
+cometTwo.hoverValue = false;
+
+/* comet Ring two */
+
+const cometTwoRing = new THREE.Mesh(
+    new THREE.RingGeometry(200, 200, 60, 60),
+    new THREE.MeshStandardMaterial({
+        wireframe: true,
+    })
+);
+
+cometTwoBase.add(cometTwoRing);
+
+scene.add(cometTwoBase);
+
 /* lighting */
 
 const pointLight = new THREE.PointLight(0xffffff);
@@ -84,27 +117,45 @@ scene.add(pointLight);
 
 window.addEventListener("pointermove", onPointerMove);
 console.log("onload", scene.children);
+
 animate();
+
+function animate() {
+    requestAnimationFrame(animate);
+
+    hoverElement();
+
+    world.rotation.y += -0.001;
+
+    if (cometOne.hoverValue === false) {
+        cometOneBase.rotation.y += -0.003;
+    }
+
+    if (cometTwo.hoverValue === false) {
+        cometTwoBase.rotation.z += -0.006;
+    }
+
+    renderer.render(scene, camera);
+}
 
 function hoverElement() {
     raycaster.setFromCamera(pointer, camera);
     const intersects = raycaster.intersectObjects(scene.children);
-    // console.log(intersects);
-    for (let i = 0; i < intersects.length; i++) {
-        intersects[i].object.material.transparent = true;
-        intersects[i].object.material.color.set(0x000000);
-    }
 
-    console.log("fill");
-}
-
-function resetMaterials() {
-    for (let i = 0; i < scene.children.length; i++) {
-        if (scene.children[i].material) {
-            scene.children[i].material.opacity = 1.0;
+    if (intersects.length > 0) {
+        console.log(intersects);
+        for (let i = 0; i < intersects.length; i++) {
+            intersects[i].object.hoverValue = true;
         }
+    } else {
+        const check = scene.children.forEach((element) => {
+            element.children
+                .filter((child) => child.hasOwnProperty("hoverValue"))
+                .forEach((comet) => {
+                    comet.hoverValue = false;
+                });
+        });
     }
-    console.log("reset");
 }
 
 function onPointerMove(event) {
@@ -112,14 +163,4 @@ function onPointerMove(event) {
     pointer.y = -(event.clientY / window.innerHeight) * 2 + 1;
 }
 
-function animate() {
-    requestAnimationFrame(animate);
-    resetMaterials();
-    hoverElement();
-
-    world.rotation.y += -0.001;
-
-    // cometOneBase.rotation.y += -0.003;
-
-    renderer.render(scene, camera);
-}
+//  scene.children.children.filter((child) => child.children.length > 1);
