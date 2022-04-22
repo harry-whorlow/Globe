@@ -5,10 +5,13 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "serve": "npm run build && vite preview"
+    "serve": "npm run build && vite preview",
+    "wpbuild": "webpack"
   },
   "devDependencies": {
-    "vite": "^2.9.5"
+    "vite": "^2.9.5",
+    "webpack": "^5.72.0",
+    "webpack-cli": "^4.9.2"
   },
   "dependencies": {
     "three": "^0.139.2"
