@@ -25,6 +25,8 @@ camera.position.set(0, 400, 1000);
 controls.update();
 renderer.render(scene, camera);
 
+window.addEventListener("pointermove", onPointerMove);
+
 /* lighting */
 
 const pointLight = new THREE.PointLight(0xffffff);
@@ -128,8 +130,8 @@ let v = new THREE.Vector3();
 let w = new THREE.Vector3();
 
 /* function */
-console.log(scene.children);
-window.addEventListener("pointermove", onPointerMove);
+console.log("scene children", scene.children);
+
 animate();
 
 function animate() {
@@ -162,6 +164,6 @@ function hoverElement() {
     const intersects = raycaster.intersectObjects(scene.children);
 
     if (intersects.length > 0) {
-        console.log(intersects);
+        console.log("current intersects", intersects);
     }
 }
