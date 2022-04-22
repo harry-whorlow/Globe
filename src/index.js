@@ -39,7 +39,7 @@ scene.add(pointLight);
 
 /* world */
 
-const worldTexture = new THREE.TextureLoader().load("./world-map.jpg");
+const worldTexture = new THREE.TextureLoader().load("./assets/world-map.jpg");
 const world = new THREE.Mesh(
     new THREE.SphereGeometry(100, 64, 32),
     new THREE.MeshStandardMaterial({
