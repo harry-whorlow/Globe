@@ -1,4 +1,14 @@
 import * as THREE from "three";
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import {
+    computeBoundsTree,
+    disposeBoundsTree,
+    acceleratedRaycast,
+} from "three-mesh-bvh";
+
+THREE.BufferGeometry.prototype.computeBoundsTree = computeBoundsTree;
+THREE.BufferGeometry.prototype.disposeBoundsTree = disposeBoundsTree;
+THREE.Mesh.prototype.raycast = acceleratedRaycast;
 
 const renderer = new THREE.WebGLRenderer({ alpha: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -19,8 +29,9 @@ const camera = new THREE.PerspectiveCamera(
     1,
     10000
 );
-
-camera.position.set(0, 200, 1000);
+const controls = new OrbitControls(camera, renderer.domElement);
+camera.position.set(0, 400, 1000);
+controls.update();
 renderer.render(scene, camera);
 
 window.addEventListener("pointermove", onPointerMove);
@@ -40,8 +51,9 @@ scene.add(pointLight);
 /* world */
 
 const worldTexture = new THREE.TextureLoader().load("./assets/world-map.jpg");
+const worldGeometry = new THREE.SphereGeometry(100, 10, 10);
 const world = new THREE.Mesh(
-    new THREE.SphereGeometry(100, 10, 10),
+    worldGeometry,
     new THREE.MeshStandardMaterial({
         map: worldTexture,
         // wireframe: true,
@@ -49,71 +61,81 @@ const world = new THREE.Mesh(
 );
 scene.add(world);
 
-/* ellipse constants */
+/* ellipse const */
 const ellipseMaterial = new THREE.LineBasicMaterial({ color: 0x000000 });
 
-/* draw ellipse */
+/* ellipse two */
 
 const curveTwo = new THREE.EllipseCurve(
     0,
-    0,
+    0, // ax, aY
     150,
-    150,
+    150, // xRadius, yRadius
     0,
-    2 * Math.PI,
-    false,
-    0
-);
-
-const curveThree = new THREE.EllipseCurve(
-    50,
-    0,
-    250,
-    150,
-    0,
-    2 * Math.PI,
-    false,
-    0
+    2 * Math.PI, // aStartAngle, aEndAngle
+    false, // aClockwise
+    0 // aRotation
 );
 
 const pointsTwo = curveTwo.getPoints(100);
 const geometryTwo = new THREE.BufferGeometry().setFromPoints(pointsTwo);
 
-const pointsThree = curveThree.getPoints(100);
-const geometryThree = new THREE.BufferGeometry().setFromPoints(pointsThree);
-
-// Create ellipse and rotate
+// Create the final object to add to the scene
 const ellipseTwo = new THREE.Line(geometryTwo, ellipseMaterial);
 ellipseTwo.rotation.x = Math.PI * 0.5;
 ellipseTwo.rotation.z = Math.PI * 1.5;
 ellipseTwo.rotation.y = Math.PI * 0.05;
 
 scene.add(ellipseTwo);
+// ellipseTwo.computeBoundsTree();
 
-const ellipseThree = new THREE.Line(geometryThree, ellipseMaterial);
-ellipseThree.rotation.x = Math.PI * 0.6;
-ellipseThree.rotation.y = Math.PI * 0.15;
-
-scene.add(ellipseThree);
-
-// comet creation
-
+/* comet */
+const cometGeometry = new THREE.SphereGeometry(10, 5, 5);
 const cometTwo = new THREE.Mesh(
-    new THREE.SphereGeometry(10, 5, 5),
-    new THREE.MeshStandardMaterial({
-        wireframe: true,
-    })
-);
-
-const cometThree = new THREE.Mesh(
-    new THREE.SphereGeometry(10, 5, 5),
+    cometGeometry,
     new THREE.MeshStandardMaterial({
         wireframe: true,
     })
 );
 
 scene.add(cometTwo);
+
+/* ellipse three */
+
+const curveThree = new THREE.EllipseCurve(
+    50,
+    0, // ax, aY
+    250,
+    150, // xRadius, yRadius
+    0,
+    2 * Math.PI, // aStartAngle, aEndAngle
+    false, // aClockwise
+    0 // aRotation
+);
+
+const pointsThree = curveThree.getPoints(100);
+const geometryThree = new THREE.BufferGeometry().setFromPoints(pointsThree);
+
+// Create the final object to add to the scene
+const ellipseThree = new THREE.Line(geometryThree, ellipseMaterial);
+ellipseThree.rotation.x = Math.PI * 0.6;
+ellipseThree.rotation.y = Math.PI * 0.15;
+
+scene.add(ellipseThree);
+// ellipseThree.computeBoundsTree();
+
+/* comet */
+
+const cometThree = new THREE.Mesh(
+    cometGeometry,
+    new THREE.MeshStandardMaterial({
+        wireframe: true,
+    })
+);
+cometThree.position.x = 200;
+
 scene.add(cometThree);
+// cometThree.computeBoundsTree();
 
 /* clock */
 let clock = new THREE.Clock();
@@ -122,7 +144,8 @@ let w = new THREE.Vector3();
 
 /* function */
 console.log("scene children", scene.children);
-
+worldGeometry.computeBoundsTree();
+cometGeometry.computeBoundsTree();
 animate();
 
 function animate() {
@@ -142,6 +165,8 @@ function animate() {
 
     world.rotation.y += -0.001;
 
+    scene.updateMatrixWorld();
+
     renderer.render(scene, camera);
 }
 
@@ -152,6 +177,7 @@ function onPointerMove(event) {
 
 function hoverElement() {
     raycaster.setFromCamera(pointer, camera);
+    // raycaster.raycaster.firstHitOnly = true;
     const intersects = raycaster.intersectObjects(scene.children);
 
     if (intersects.length > 0) {
