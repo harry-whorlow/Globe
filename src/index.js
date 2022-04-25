@@ -1,5 +1,14 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
+import {
+    computeBoundsTree,
+    disposeBoundsTree,
+    acceleratedRaycast,
+} from "three-mesh-bvh";
+
+THREE.BufferGeometry.prototype.computeBoundsTree = computeBoundsTree;
+THREE.BufferGeometry.prototype.disposeBoundsTree = disposeBoundsTree;
+THREE.Mesh.prototype.raycast = acceleratedRaycast;
 
 const renderer = new THREE.WebGLRenderer({ alpha: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -42,8 +51,9 @@ scene.add(pointLight);
 /* world */
 
 const worldTexture = new THREE.TextureLoader().load("./assets/world-map.jpg");
+const worldGeometry = new THREE.SphereGeometry(100, 64, 32);
 const world = new THREE.Mesh(
-    new THREE.SphereGeometry(100, 64, 32),
+    worldGeometry,
     new THREE.MeshStandardMaterial({
         map: worldTexture,
         // wireframe: true,
@@ -77,11 +87,12 @@ ellipseTwo.rotation.z = Math.PI * 1.5;
 ellipseTwo.rotation.y = Math.PI * 0.05;
 
 scene.add(ellipseTwo);
+// ellipseTwo.computeBoundsTree();
 
 /* comet */
-
+const cometGeometry = new THREE.SphereGeometry(10, 10, 5);
 const cometTwo = new THREE.Mesh(
-    new THREE.SphereGeometry(10, 10, 5),
+    cometGeometry,
     new THREE.MeshStandardMaterial({
         wireframe: true,
     })
@@ -111,11 +122,12 @@ ellipseThree.rotation.x = Math.PI * 0.6;
 ellipseThree.rotation.y = Math.PI * 0.15;
 
 scene.add(ellipseThree);
+// ellipseThree.computeBoundsTree();
 
 /* comet */
 
 const cometThree = new THREE.Mesh(
-    new THREE.SphereGeometry(10, 10, 5),
+    cometGeometry,
     new THREE.MeshStandardMaterial({
         wireframe: true,
     })
@@ -123,6 +135,7 @@ const cometThree = new THREE.Mesh(
 cometThree.position.x = 200;
 
 scene.add(cometThree);
+// cometThree.computeBoundsTree();
 
 /* clock */
 let clock = new THREE.Clock();
@@ -131,7 +144,8 @@ let w = new THREE.Vector3();
 
 /* function */
 console.log("scene children", scene.children);
-
+worldGeometry.computeBoundsTree();
+cometGeometry.computeBoundsTree();
 animate();
 
 function animate() {
@@ -161,6 +175,7 @@ function onPointerMove(event) {
 
 function hoverElement() {
     raycaster.setFromCamera(pointer, camera);
+    // raycaster.raycaster.firstHitOnly = true;
     const intersects = raycaster.intersectObjects(scene.children);
 
     if (intersects.length > 0) {
