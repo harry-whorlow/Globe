@@ -1,4 +1,14 @@
 import * as THREE from "three";
+import {
+    computeBoundsTree,
+    disposeBoundsTree,
+    acceleratedRaycast,
+} from "three-mesh-bvh";
+
+// Add the extension functions
+THREE.BufferGeometry.prototype.computeBoundsTree = computeBoundsTree;
+THREE.BufferGeometry.prototype.disposeBoundsTree = disposeBoundsTree;
+THREE.Mesh.prototype.raycast = acceleratedRaycast;
 
 const renderer = new THREE.WebGLRenderer({ alpha: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -20,7 +30,7 @@ const camera = new THREE.PerspectiveCamera(
     10000
 );
 
-camera.position.set(0, 200, 1000);
+camera.position.set(0, 0, 1000);
 renderer.render(scene, camera);
 
 window.addEventListener("pointermove", onPointerMove);
@@ -39,20 +49,18 @@ scene.add(pointLight);
 
 /* world */
 
-const worldTexture = new THREE.TextureLoader().load("./assets/world-map.jpg");
 const world = new THREE.Mesh(
     new THREE.SphereGeometry(100, 10, 10),
     new THREE.MeshStandardMaterial({
-        map: worldTexture,
         // wireframe: true,
     })
 );
 scene.add(world);
 
-/* ellipse constants */
+/* ellipse const */
 const ellipseMaterial = new THREE.LineBasicMaterial({ color: 0x000000 });
-
-/* draw ellipse */
+const cometGeometry = new THREE.SphereGeometry(20, 50, 5);
+/* ellipse two */
 
 const curveTwo = new THREE.EllipseCurve(
     0,
@@ -82,37 +90,37 @@ const geometryTwo = new THREE.BufferGeometry().setFromPoints(pointsTwo);
 const pointsThree = curveThree.getPoints(100);
 const geometryThree = new THREE.BufferGeometry().setFromPoints(pointsThree);
 
-// Create ellipse and rotate
 const ellipseTwo = new THREE.Line(geometryTwo, ellipseMaterial);
 ellipseTwo.rotation.x = Math.PI * 0.5;
 ellipseTwo.rotation.z = Math.PI * 1.5;
 ellipseTwo.rotation.y = Math.PI * 0.05;
 
-scene.add(ellipseTwo);
-
 const ellipseThree = new THREE.Line(geometryThree, ellipseMaterial);
 ellipseThree.rotation.x = Math.PI * 0.6;
 ellipseThree.rotation.y = Math.PI * 0.15;
 
+scene.add(ellipseTwo);
+
 scene.add(ellipseThree);
 
-// comet creation
+/* comet */
 
 const cometTwo = new THREE.Mesh(
-    new THREE.SphereGeometry(10, 5, 5),
+    cometGeometry,
     new THREE.MeshStandardMaterial({
         wireframe: true,
     })
 );
 
 const cometThree = new THREE.Mesh(
-    new THREE.SphereGeometry(10, 5, 5),
+    cometGeometry,
     new THREE.MeshStandardMaterial({
-        wireframe: true,
+        //wireframe: true,
     })
 );
 
 scene.add(cometTwo);
+
 scene.add(cometThree);
 
 /* clock */
@@ -121,7 +129,7 @@ let v = new THREE.Vector3();
 let w = new THREE.Vector3();
 
 /* function */
-console.log("scene children", scene.children);
+/* console.log("scene children", scene.children);*/
 
 animate();
 
@@ -155,6 +163,6 @@ function hoverElement() {
     const intersects = raycaster.intersectObjects(scene.children);
 
     if (intersects.length > 0) {
-        console.log("current intersects", intersects);
+        intersects[0].object.material.color.set(0xff0000);
     }
 }
